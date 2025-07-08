@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Cloud, Shield, CheckCircle } from "lucide-react";
+import { Settings, Cloud, Shield, CheckCircle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const awsRegions = [
@@ -24,16 +24,20 @@ export default function Configuration() {
     accessKeyId: "",
     secretAccessKey: "",
   });
+  const [useIamRole, setUseIamRole] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
 
   const handleSaveConfig = () => {
     // In a real app, this would validate and save to backend/environment
     localStorage.setItem('s3Config', JSON.stringify(config));
+    localStorage.setItem('useIamRole', JSON.stringify(useIamRole));
     setIsConnected(true);
     toast({
       title: "Configuration Saved",
-      description: "Your S3 bucket configuration has been saved successfully.",
+      description: useIamRole 
+        ? "Your S3 bucket configuration has been saved for IAM role authentication."
+        : "Your S3 bucket configuration has been saved with access keys.",
     });
   };
 
@@ -64,7 +68,7 @@ export default function Configuration() {
                 <div>
                   <CardTitle>AWS S3 Settings</CardTitle>
                   <CardDescription>
-                    Enter your AWS S3 bucket details and credentials
+                    Enter your AWS S3 bucket details and authentication method
                   </CardDescription>
                 </div>
               </div>
@@ -96,27 +100,86 @@ export default function Configuration() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="accessKeyId">Access Key ID</Label>
-                <Input
-                  id="accessKeyId"
-                  type="password"
-                  placeholder="AKIA..."
-                  value={config.accessKeyId}
-                  onChange={(e) => setConfig({...config, accessKeyId: e.target.value})}
-                />
+              {/* Authentication Method Selection */}
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <Label className="text-base font-medium">Authentication Method</Label>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="iam-role"
+                      name="auth-method"
+                      checked={useIamRole}
+                      onChange={() => setUseIamRole(true)}
+                      className="w-4 h-4 text-primary"
+                    />
+                    <Label htmlFor="iam-role" className="cursor-pointer">
+                      Use IAM Role (Recommended for EC2)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="access-keys"
+                      name="auth-method"
+                      checked={!useIamRole}
+                      onChange={() => setUseIamRole(false)}
+                      className="w-4 h-4 text-primary"
+                    />
+                    <Label htmlFor="access-keys" className="cursor-pointer">
+                      Use Access Keys
+                    </Label>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="secretAccessKey">Secret Access Key</Label>
-                <Input
-                  id="secretAccessKey"
-                  type="password"
-                  placeholder="Enter secret access key"
-                  value={config.secretAccessKey}
-                  onChange={(e) => setConfig({...config, secretAccessKey: e.target.value})}
-                />
-              </div>
+              {/* Conditional AWS Credentials Fields */}
+              {!useIamRole && (
+                <div className="space-y-4 p-4 border rounded-lg bg-background/50">
+                  <div className="flex items-center gap-2 text-orange-400">
+                    <Info className="w-4 h-4" />
+                    <span className="text-sm font-medium">AWS Access Keys</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="accessKeyId">Access Key ID</Label>
+                    <Input
+                      id="accessKeyId"
+                      type="password"
+                      placeholder="AKIA..."
+                      value={config.accessKeyId}
+                      onChange={(e) => setConfig({...config, accessKeyId: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="secretAccessKey">Secret Access Key</Label>
+                    <Input
+                      id="secretAccessKey"
+                      type="password"
+                      placeholder="Enter secret access key"
+                      value={config.secretAccessKey}
+                      onChange={(e) => setConfig({...config, secretAccessKey: e.target.value})}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {useIamRole && (
+                <div className="p-4 border rounded-lg bg-green-500/10 border-green-500/20">
+                  <div className="flex items-center gap-2 text-green-400 mb-2">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="text-sm font-medium">IAM Role Authentication</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    The application will use the IAM role attached to your EC2 instance for S3 authentication. 
+                    No access keys required.
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <Button onClick={handleSaveConfig} className="flex-1">
@@ -167,19 +230,28 @@ export default function Configuration() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-primary">
                 <Shield className="w-5 h-5" />
-                Security Notice
+                Security Best Practices
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-2">
-              <p>
-                In production, credentials should be managed through:
-              </p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Environment variables</li>
-                <li>IAM roles on EC2</li>
-                <li>AWS Secrets Manager</li>
-                <li>Docker secrets</li>
-              </ul>
+            <CardContent className="text-sm text-muted-foreground space-y-3">
+              <div>
+                <p className="font-medium text-green-400 mb-2">✓ IAM Roles (Recommended):</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>No credentials in code/config</li>
+                  <li>Automatic credential rotation</li>
+                  <li>Fine-grained permissions</li>
+                  <li>Audit trail via CloudTrail</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium text-orange-400 mb-2">⚠ Access Keys:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>Store in environment variables</li>
+                  <li>Rotate regularly</li>
+                  <li>Use least privilege principle</li>
+                  <li>Never commit to version control</li>
+                </ul>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -10,7 +10,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 
 const navigationItems = [
@@ -21,14 +20,12 @@ const navigationItems = [
 ];
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
-
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible>
+    <Sidebar collapsible="icon">
       <SidebarContent className="bg-sidebar">
         <SidebarGroup>
           <SidebarGroupLabel className="text-muted-foreground px-4 py-2">
-            {!collapsed && "Storage Management"}
+            Storage Management
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -47,7 +44,7 @@ export function AppSidebar() {
                       }
                     >
                       <item.icon className="w-5 h-5" />
-                      {!collapsed && <span className="font-medium">{item.title}</span>}
+                      <span className="font-medium">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
