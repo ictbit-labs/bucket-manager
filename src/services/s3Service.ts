@@ -8,7 +8,7 @@ export interface S3Object {
 }
 
 class S3Service {
-  private apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  public apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   private initialized = false;
 
   initialize() {
@@ -120,14 +120,19 @@ class S3Service {
     }
   }
 
-  async testConnection(): Promise<void> {
+  async testConnection(config?: { bucketName: string; region: string }): Promise<void> {
     this.ensureInitialized();
 
     try {
-      const response = await fetch(`${this.apiUrl}/api/test`);
+      const response = await fetch(`${this.apiUrl}/api/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config || {})
+      });
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const error = await response.json();
+        throw new Error(error.error || `HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error('S3 connection test failed:', error);

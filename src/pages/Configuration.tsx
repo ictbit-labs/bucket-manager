@@ -102,8 +102,8 @@ export default function Configuration() {
       // Initialize service
       s3Service.initialize();
 
-      // Test the connection
-      await s3Service.testConnection();
+      // Test the connection (will fail if config doesn't match backend)
+      await s3Service.testConnection({ bucketName: config.bucketName, region: config.region });
       
       setIsConnected(true);
       toast({

@@ -169,9 +169,24 @@ app.get('/api/download/:key(*)', async (req, res) => {
   }
 });
 
-// Test connection
-app.get('/api/test', async (req, res) => {
+// Test connection with config validation
+app.post('/api/test', async (req, res) => {
   try {
+    const { bucketName, region } = req.body;
+    
+    // Validate config matches backend
+    if (bucketName !== BUCKET_NAME) {
+      return res.status(400).json({ 
+        error: `Bucket mismatch. Backend configured for: ${BUCKET_NAME}` 
+      });
+    }
+    
+    if (region !== (process.env.AWS_DEFAULT_REGION || 'eu-central-1')) {
+      return res.status(400).json({ 
+        error: `Region mismatch. Backend configured for: ${process.env.AWS_DEFAULT_REGION || 'eu-central-1'}` 
+      });
+    }
+    
     const command = new ListObjectsV2Command({
       Bucket: BUCKET_NAME,
       MaxKeys: 1
