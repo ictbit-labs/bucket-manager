@@ -26,27 +26,106 @@ export default function Configuration() {
   });
   const [useIamRole, setUseIamRole] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
+  const [testing, setTesting] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    // Load existing configuration
+    const savedConfig = localStorage.getItem('s3Config');
+    const savedUseIamRole = localStorage.getItem('useIamRole');
+    
+    if (savedConfig) {
+      setConfig(JSON.parse(savedConfig));
+      setIsConnected(true);
+    }
+    
+    if (savedUseIamRole) {
+      setUseIamRole(JSON.parse(savedUseIamRole));
+    }
+  }, []);
+
   const handleSaveConfig = () => {
-    // In a real app, this would validate and save to backend/environment
+    // Validate required fields
+    if (!config.bucketName || !config.region) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in the bucket name and region.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!useIamRole && (!config.accessKeyId || !config.secretAccessKey)) {
+      toast({
+        title: "Validation Error", 
+        description: "Please provide access keys or enable IAM role authentication.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Save configuration
     localStorage.setItem('s3Config', JSON.stringify(config));
     localStorage.setItem('useIamRole', JSON.stringify(useIamRole));
-    setIsConnected(true);
-    toast({
-      title: "Configuration Saved",
-      description: useIamRole 
-        ? "Your S3 bucket configuration has been saved for IAM role authentication."
-        : "Your S3 bucket configuration has been saved with access keys.",
-    });
+    
+    // Initialize S3 service
+    try {
+      s3Service.initialize({
+        ...config,
+        useIamRole,
+      });
+      setIsConnected(true);
+      toast({
+        title: "Configuration Saved",
+        description: useIamRole 
+          ? "Your S3 bucket configuration has been saved for IAM role authentication."
+          : "Your S3 bucket configuration has been saved with access keys.",
+      });
+    } catch (error) {
+      toast({
+        title: "Configuration Error",
+        description: error instanceof Error ? error.message : "Failed to initialize S3 service",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleTestConnection = () => {
-    // In a real app, this would test the actual S3 connection
-    toast({
-      title: "Connection Test",
-      description: "Testing S3 connection... (This would validate credentials in production)",
-    });
+  const handleTestConnection = async () => {
+    if (!config.bucketName || !config.region) {
+      toast({
+        title: "Missing Configuration",
+        description: "Please configure your bucket name and region first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setTesting(true);
+    try {
+      // Initialize service with current config
+      s3Service.initialize({
+        ...config,
+        useIamRole,
+      });
+
+      // Test the connection
+      await s3Service.testConnection();
+      
+      setIsConnected(true);
+      toast({
+        title: "Connection Successful",
+        description: "Successfully connected to your S3 bucket!",
+      });
+    } catch (error) {
+      setIsConnected(false);
+      toast({
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : "Failed to connect to S3 bucket",
+        variant: "destructive",
+      });
+    } finally {
+      setTesting(false);
+    }
   };
 
   return (
@@ -186,8 +265,16 @@ export default function Configuration() {
                   <Settings className="w-4 h-4 mr-2" />
                   Save Configuration
                 </Button>
-                <Button variant="outline" onClick={handleTestConnection}>
-                  Test Connection
+                <Button 
+                  variant="outline" 
+                  onClick={handleTestConnection}
+                  disabled={testing}
+                >
+                  {testing ? (
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    "Test Connection"
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -223,6 +310,16 @@ export default function Configuration() {
                   </>
                 )}
               </div>
+              {config.bucketName && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Bucket: {config.bucketName}
+                </p>
+              )}
+              {config.region && (
+                <p className="text-sm text-muted-foreground">
+                  Region: {config.region}
+                </p>
+              )}
             </CardContent>
           </Card>
 

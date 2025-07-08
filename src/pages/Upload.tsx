@@ -1,23 +1,52 @@
-
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload as UploadIcon, File, X, CheckCircle } from "lucide-react";
+import { Upload as UploadIcon, File, X, CheckCircle, FolderOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { s3Service } from "@/services/s3Service";
 
 interface FileUpload {
   id: string;
   file: File;
   progress: number;
   status: 'pending' | 'uploading' | 'completed' | 'error';
+  error?: string;
 }
 
 export default function Upload() {
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [isConfigured, setIsConfigured] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if S3 is configured
+    const config = localStorage.getItem('s3Config');
+    const useIamRole = localStorage.getItem('useIamRole');
+    
+    if (config) {
+      const parsedConfig = JSON.parse(config);
+      const parsedUseIamRole = JSON.parse(useIamRole || 'true');
+      
+      if (parsedConfig.bucketName && parsedConfig.region) {
+        try {
+          s3Service.initialize({
+            ...parsedConfig,
+            useIamRole: parsedUseIamRole,
+          });
+          setIsConfigured(true);
+        } catch (error) {
+          toast({
+            title: "Configuration Error",
+            description: "Failed to initialize S3 service. Please check your configuration.",
+            variant: "destructive",
+          });
+        }
+      }
+    }
+  }, []);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -61,29 +90,59 @@ export default function Upload() {
     setFiles(prev => prev.filter(f => f.id !== id));
   };
 
-  const simulateUpload = (id: string) => {
+  const uploadFile = async (fileUpload: FileUpload) => {
     setFiles(prev => prev.map(f => 
-      f.id === id ? { ...f, status: 'uploading' as const } : f
+      f.id === fileUpload.id ? { ...f, status: 'uploading' as const, progress: 0 } : f
     ));
 
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setFiles(prev => prev.map(f => {
-        if (f.id === id) {
-          const newProgress = Math.min(f.progress + Math.random() * 20, 100);
-          if (newProgress >= 100) {
-            clearInterval(interval);
-            return { ...f, progress: 100, status: 'completed' as const };
-          }
-          return { ...f, progress: newProgress };
+    try {
+      await s3Service.uploadFile(
+        fileUpload.file,
+        fileUpload.file.name,
+        (progress) => {
+          setFiles(prev => prev.map(f => 
+            f.id === fileUpload.id ? { ...f, progress } : f
+          ));
         }
-        return f;
-      }));
-    }, 500);
+      );
+
+      setFiles(prev => prev.map(f => 
+        f.id === fileUpload.id ? { ...f, status: 'completed' as const, progress: 100 } : f
+      ));
+
+      toast({
+        title: "Upload Successful",
+        description: `${fileUpload.file.name} has been uploaded to your S3 bucket.`,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+      setFiles(prev => prev.map(f => 
+        f.id === fileUpload.id ? { 
+          ...f, 
+          status: 'error' as const, 
+          error: errorMessage 
+        } : f
+      ));
+
+      toast({
+        title: "Upload Failed",
+        description: `Failed to upload ${fileUpload.file.name}: ${errorMessage}`,
+        variant: "destructive",
+      });
+    }
   };
 
-  const uploadAll = () => {
-    const pendingFiles = files.filter(f => f.status === 'pending');
+  const uploadAll = async () => {
+    if (!isConfigured) {
+      toast({
+        title: "Not Configured",
+        description: "Please configure your S3 settings first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const pendingFiles = files.filter(f => f.status === 'pending' || f.status === 'error');
     if (pendingFiles.length === 0) {
       toast({
         title: "No files to upload",
@@ -92,11 +151,15 @@ export default function Upload() {
       return;
     }
 
-    pendingFiles.forEach(file => simulateUpload(file.id));
     toast({
       title: "Upload Started",
       description: `Uploading ${pendingFiles.length} file(s) to S3 bucket.`,
     });
+
+    // Upload files one by one to avoid overwhelming the service
+    for (const fileUpload of pendingFiles) {
+      await uploadFile(fileUpload);
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -106,6 +169,34 @@ export default function Upload() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  if (!isConfigured) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-2 gradient-text">Upload Files</h1>
+          <p className="text-muted-foreground">
+            Upload files to your S3 bucket
+          </p>
+        </div>
+
+        <Card className="bg-card/50 backdrop-blur-sm border-border">
+          <CardContent className="p-12 text-center">
+            <FolderOpen className="w-16 h-16 text-muted-foreground/50 mb-4 mx-auto" />
+            <h3 className="text-lg font-medium text-muted-foreground mb-2">
+              S3 Not Configured
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
+              Please configure your S3 bucket settings in the Configuration page to upload files.
+            </p>
+            <Button onClick={() => window.location.href = '/config'}>
+              Go to Configuration
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
@@ -188,6 +279,8 @@ export default function Upload() {
                             ? 'default'
                             : fileUpload.status === 'uploading'
                             ? 'secondary'
+                            : fileUpload.status === 'error'
+                            ? 'destructive'
                             : 'outline'
                         }
                         className={
@@ -220,6 +313,9 @@ export default function Upload() {
                       {formatFileSize(fileUpload.file.size)}
                     </span>
                   </div>
+                  {fileUpload.error && (
+                    <p className="text-xs text-destructive mt-1">{fileUpload.error}</p>
+                  )}
                 </div>
               </div>
             ))}
