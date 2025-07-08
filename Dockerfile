@@ -10,7 +10,7 @@ ENV VITE_API_URL=$VITE_API_URL
 
 # Copy package files
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy source code
 COPY . .
