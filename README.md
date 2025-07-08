@@ -1,73 +1,209 @@
-# Welcome to your Lovable project
 
-## Project info
+# S3 Bucket Manager
 
-**URL**: https://lovable.dev/projects/5a657f3a-2299-4090-9441-3d2c202018e5
+A beautiful, Spotify-inspired web application for managing AWS S3 storage buckets. Built with React, TypeScript, and Tailwind CSS, designed to run as a microservice using Docker.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- 🎵 **Spotify-inspired Design** - Dark theme with green accents and smooth animations
+- ☁️ **S3 Integration** - Upload, download, and manage files in your AWS S3 buckets
+- 🐳 **Docker Ready** - Containerized application ready for deployment
+- 🔒 **Secure** - Environment-based configuration with IAM role support
+- 📱 **Responsive** - Beautiful interface that works on all devices
+- ⚡ **Fast** - Optimized build with nginx serving static assets
 
-**Use Lovable**
+## Quick Start
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/5a657f3a-2299-4090-9441-3d2c202018e5) and start prompting.
+### Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Docker and Docker Compose
+- AWS S3 bucket with appropriate permissions
+- AWS credentials (Access Key ID and Secret Access Key) OR IAM roles configured
 
-**Use your preferred IDE**
+### Environment Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. Copy the environment template:
+```bash
+cp .env.example .env
 ```
 
-**Edit a file directly in GitHub**
+2. Edit `.env` with your AWS credentials:
+```env
+AWS_ACCESS_KEY_ID=your_access_key_id_here
+AWS_SECRET_ACCESS_KEY=your_secret_access_key_here
+AWS_DEFAULT_REGION=us-east-1
+S3_BUCKET_NAME=your-bucket-name
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Running with Docker Compose
 
-**Use GitHub Codespaces**
+#### Development
+```bash
+# Start the application
+docker-compose up -d
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# View logs
+docker-compose logs -f
 
-## What technologies are used for this project?
+# Stop the application
+docker-compose down
+```
 
-This project is built with:
+#### Production
+```bash
+# Use the production configuration
+docker-compose -f docker-compose.prod.yml up -d
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The application will be available at `http://localhost:8080`
 
-## How can I deploy this project?
+## AWS IAM Permissions
 
-Simply open [Lovable](https://lovable.dev/projects/5a657f3a-2299-4090-9441-3d2c202018e5) and click on Share -> Publish.
+Your AWS user or IAM role needs the following S3 permissions:
 
-## Can I connect a custom domain to my Lovable project?
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::your-bucket-name",
+                "arn:aws:s3:::your-bucket-name/*"
+            ]
+        }
+    ]
+}
+```
 
-Yes, you can!
+## EC2 Deployment with IAM Roles (Recommended)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+For production deployment on EC2, use IAM roles instead of access keys:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+1. Create an IAM role with the S3 permissions above
+2. Attach the role to your EC2 instance
+3. Remove `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` from your `.env` file
+4. The application will automatically use the instance's IAM role
+
+## Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   User Browser  │◄──►│  Docker/Nginx   │◄──►│   AWS S3 API    │
+│                 │    │  (Port 8080)    │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+## Development
+
+### Local Development Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+### Building Docker Image
+
+```bash
+# Build the image
+docker build -t s3-bucket-manager .
+
+# Run the container
+docker run -p 8080:80 --env-file .env s3-bucket-manager
+```
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `AWS_ACCESS_KEY_ID` | AWS Access Key ID | Yes (unless using IAM roles) |
+| `AWS_SECRET_ACCESS_KEY` | AWS Secret Access Key | Yes (unless using IAM roles) |
+| `AWS_DEFAULT_REGION` | AWS Region | Yes |
+| `S3_BUCKET_NAME` | S3 Bucket Name | Yes |
+| `NODE_ENV` | Environment (production/development) | No |
+
+### Docker Compose Override
+
+Create `docker-compose.override.yml` for local customizations:
+
+```yaml
+version: '3.8'
+services:
+  s3-bucket-manager:
+    ports:
+      - "3000:80"  # Use different port
+    environment:
+      - DEBUG=true
+```
+
+## Security Considerations
+
+- **Never commit credentials** to version control
+- Use **IAM roles** on EC2 instead of access keys when possible
+- Enable **SSL/TLS** in production (use the prod config with Traefik)
+- Regularly **rotate access keys**
+- Use **least privilege** IAM policies
+
+## Monitoring and Logs
+
+### View Application Logs
+```bash
+docker-compose logs -f s3-bucket-manager
+```
+
+### Health Check
+The application includes health checks accessible at:
+- `http://localhost:8080/` - Main application
+- Container health is monitored by Docker
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Permission Denied**: Check IAM permissions and bucket policies
+2. **Connection Timeout**: Verify AWS region and network connectivity
+3. **Build Failures**: Ensure Docker has sufficient memory allocated
+
+### Debug Mode
+
+Set `DEBUG=true` in your environment to enable verbose logging.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test with Docker
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Tech Stack
+
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui, Radix UI
+- **Build Tool**: Vite
+- **Container**: Docker, Nginx
+- **AWS SDK**: AWS SDK for JavaScript v3
+- **State Management**: TanStack Query
+
+---
+
+**Made with ❤️ and inspired by Spotify's beautiful design**

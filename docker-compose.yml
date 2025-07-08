@@ -1,0 +1,30 @@
+
+version: '3.8'
+
+services:
+  s3-bucket-manager:
+    build: .
+    container_name: s3-bucket-manager
+    ports:
+      - "8080:80"
+    environment:
+      # AWS credentials should be provided via environment variables
+      # In production, use IAM roles or AWS Secrets Manager
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+    restart: unless-stopped
+    networks:
+      - s3-manager-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.s3-manager.rule=Host(`s3-manager.localhost`)"
+      - "traefik.http.services.s3-manager.loadbalancer.server.port=80"
+
+networks:
+  s3-manager-network:
+    driver: bridge
+
+volumes:
+  s3-manager-data:
