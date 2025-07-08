@@ -14,14 +14,15 @@ const awsRegions = [
   { value: "us-east-1", label: "US East (N. Virginia)" },
   { value: "us-west-2", label: "US West (Oregon)" },
   { value: "eu-west-1", label: "Europe (Ireland)" },
+  { value: "eu-central-1", label: "Europe (Frankfurt)" },
   { value: "ap-southeast-1", label: "Asia Pacific (Singapore)" },
   { value: "ap-northeast-1", label: "Asia Pacific (Tokyo)" },
 ];
 
 export default function Configuration() {
   const [config, setConfig] = useState({
-    bucketName: "",
-    region: "",
+    bucketName: "ictbit-s3-lab",
+    region: "eu-central-1",
     accessKeyId: "",
     secretAccessKey: "",
   });
