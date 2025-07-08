@@ -1,13 +1,14 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Cloud, Shield, CheckCircle, Info } from "lucide-react";
+import { Settings, Cloud, Shield, CheckCircle, Info, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { s3Service } from "@/services/s3Service";
 
 const awsRegions = [
   { value: "us-east-1", label: "US East (N. Virginia)" },
@@ -70,16 +71,11 @@ export default function Configuration() {
     
     // Initialize S3 service
     try {
-      s3Service.initialize({
-        ...config,
-        useIamRole,
-      });
+      s3Service.initialize();
       setIsConnected(true);
       toast({
         title: "Configuration Saved",
-        description: useIamRole 
-          ? "Your S3 bucket configuration has been saved for IAM role authentication."
-          : "Your S3 bucket configuration has been saved with access keys.",
+        description: "Configuration saved. The backend API will handle S3 authentication.",
       });
     } catch (error) {
       toast({
@@ -102,11 +98,8 @@ export default function Configuration() {
 
     setTesting(true);
     try {
-      // Initialize service with current config
-      s3Service.initialize({
-        ...config,
-        useIamRole,
-      });
+      // Initialize service
+      s3Service.initialize();
 
       // Test the connection
       await s3Service.testConnection();

@@ -1,8 +1,12 @@
 
 # Multi-stage build for optimized production image
-FROM node:18-alpine as builder
+FROM node:18.18-bullseye-slim as builder
 
 WORKDIR /app
+
+# Accept build arguments
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 
 # Copy package files
 COPY package*.json ./
