@@ -11,7 +11,8 @@ import {
   Search, 
   MoreVertical,
   Trash2,
-  Eye
+  Eye,
+  FolderOpen
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,48 +31,8 @@ interface S3Object {
   url?: string;
 }
 
-// Mock data for demo
-const mockFiles: S3Object[] = [
-  {
-    id: '1',
-    name: 'documents',
-    type: 'folder',
-    lastModified: new Date('2024-01-15'),
-  },
-  {
-    id: '2',
-    name: 'images',
-    type: 'folder',
-    lastModified: new Date('2024-01-14'),
-  },
-  {
-    id: '3',
-    name: 'presentation.pdf',
-    type: 'file',
-    size: 2048576,
-    lastModified: new Date('2024-01-13'),
-    url: '#',
-  },
-  {
-    id: '4',
-    name: 'data-export.csv',
-    type: 'file',
-    size: 1024000,
-    lastModified: new Date('2024-01-12'),
-    url: '#',
-  },
-  {
-    id: '5',
-    name: 'backup.zip',
-    type: 'file',
-    size: 15728640,
-    lastModified: new Date('2024-01-11'),
-    url: '#',
-  },
-];
-
 export default function Browse() {
-  const [files, setFiles] = useState<S3Object[]>(mockFiles);
+  const [files, setFiles] = useState<S3Object[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPath, setCurrentPath] = useState('root');
   const { toast } = useToast();
@@ -115,7 +76,6 @@ export default function Browse() {
 
   const handleFolderClick = (folderName: string) => {
     setCurrentPath(folderName);
-    // In a real app, this would load folder contents
     toast({
       title: "Opening Folder",
       description: `Loading contents of ${folderName}...`,
@@ -160,77 +120,92 @@ export default function Browse() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {filteredFiles.map((file) => (
-              <div
-                key={file.id}
-                className="flex items-center justify-between p-4 bg-background/30 rounded-lg hover:bg-background/50 transition-all duration-200"
-              >
-                <div className="flex items-center gap-4">
-                  {file.type === 'folder' ? (
-                    <Folder className="w-8 h-8 text-blue-400" />
-                  ) : (
-                    <File className="w-8 h-8 text-muted-foreground" />
-                  )}
-                  <div>
-                    <h3 
-                      className={`font-medium ${file.type === 'folder' ? 'cursor-pointer hover:text-primary' : ''}`}
-                      onClick={() => file.type === 'folder' && handleFolderClick(file.name)}
-                    >
-                      {file.name}
-                    </h3>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>{formatDate(file.lastModified)}</span>
-                      {file.size && <span>{formatFileSize(file.size)}</span>}
-                      <Badge variant="outline" className="text-xs">
-                        {file.type}
-                      </Badge>
+          {filteredFiles.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <FolderOpen className="w-16 h-16 text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                No files found
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-md">
+                {searchTerm 
+                  ? `No files match "${searchTerm}". Try adjusting your search terms.`
+                  : "This bucket is empty. Upload some files to get started."
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredFiles.map((file) => (
+                <div
+                  key={file.id}
+                  className="flex items-center justify-between p-4 bg-background/30 rounded-lg hover:bg-background/50 transition-all duration-200"
+                >
+                  <div className="flex items-center gap-4">
+                    {file.type === 'folder' ? (
+                      <Folder className="w-8 h-8 text-blue-400" />
+                    ) : (
+                      <File className="w-8 h-8 text-muted-foreground" />
+                    )}
+                    <div>
+                      <h3 
+                        className={`font-medium ${file.type === 'folder' ? 'cursor-pointer hover:text-primary' : ''}`}
+                        onClick={() => file.type === 'folder' && handleFolderClick(file.name)}
+                      >
+                        {file.name}
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>{formatDate(file.lastModified)}</span>
+                        {file.size && <span>{formatFileSize(file.size)}</span>}
+                        <Badge variant="outline" className="text-xs">
+                          {file.type}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  {file.type === 'file' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownload(file)}
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      Download
-                    </Button>
-                  )}
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
-                      </DropdownMenuItem>
-                      {file.type === 'file' && (
-                        <DropdownMenuItem onClick={() => handleDownload(file)}>
-                          <Download className="w-4 h-4 mr-2" />
-                          Download
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={() => handleDelete(file.id, file.name)}
+                  <div className="flex items-center gap-2">
+                    {file.type === 'file' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(file)}
                       >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <Download className="w-4 h-4 mr-1" />
+                        Download
+                      </Button>
+                    )}
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </DropdownMenuItem>
+                        {file.type === 'file' && (
+                          <DropdownMenuItem onClick={() => handleDownload(file)}>
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDelete(file.id, file.name)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
