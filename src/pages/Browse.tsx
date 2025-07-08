@@ -51,7 +51,7 @@ export default function Browse() {
         } catch (error) {
           toast({
             title: "Configuration Error",
-            description: "Failed to initialize S3 service. Please check your configuration.",
+            description: "Failed to initialize storage service. Please check your configuration.",
             variant: "destructive",
           });
         }
@@ -69,7 +69,7 @@ export default function Browse() {
     } catch (error) {
       toast({
         title: "Error Loading Files",
-        description: error instanceof Error ? error.message : "Failed to load files from S3",
+        description: error instanceof Error ? error.message : "Failed to load files from storage bucket",
         variant: "destructive",
       });
       setFiles([]);
@@ -172,7 +172,7 @@ export default function Browse() {
         <div className="text-center">
           <h1 className="text-3xl font-bold gradient-text">Browse Files</h1>
           <p className="text-muted-foreground">
-            Navigate and manage files in your S3 bucket
+            Navigate and manage files in your storage bucket
           </p>
         </div>
         

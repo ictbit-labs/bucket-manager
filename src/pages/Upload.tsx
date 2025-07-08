@@ -40,7 +40,7 @@ export default function Upload() {
         } catch (error) {
           toast({
             title: "Configuration Error",
-            description: "Failed to initialize S3 service. Please check your configuration.",
+            description: "Failed to initialize Storage service. Please check your configuration.",
             variant: "destructive",
           });
         }
@@ -112,7 +112,7 @@ export default function Upload() {
 
       toast({
         title: "Upload Successful",
-        description: `${fileUpload.file.name} has been uploaded to your S3 bucket.`,
+        description: `${fileUpload.file.name} has been uploaded to your Storage bucket.`,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Upload failed';
@@ -136,7 +136,7 @@ export default function Upload() {
     if (!isConfigured) {
       toast({
         title: "Not Configured",
-        description: "Please configure your S3 settings first.",
+        description: "Please configure your bucket settings first.",
         variant: "destructive",
       });
       return;
@@ -153,7 +153,7 @@ export default function Upload() {
 
     toast({
       title: "Upload Started",
-      description: `Uploading ${pendingFiles.length} file(s) to S3 bucket.`,
+      description: `Uploading ${pendingFiles.length} file(s) to bucket.`,
     });
 
     // Upload files one by one to avoid overwhelming the service
@@ -176,7 +176,7 @@ export default function Upload() {
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-2 gradient-text">Upload Files</h1>
           <p className="text-muted-foreground">
-            Upload files to your S3 bucket
+            Upload files to your storage bucket
           </p>
         </div>
 
@@ -187,7 +187,7 @@ export default function Upload() {
               S3 Not Configured
             </h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-              Please configure your S3 bucket settings in the Configuration page to upload files.
+              Please configure your storage bucket settings in the Configuration page to upload files.
             </p>
             <Button onClick={() => window.location.href = '/config'}>
               Go to Configuration
@@ -203,7 +203,7 @@ export default function Upload() {
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-2 gradient-text">Upload Files</h1>
         <p className="text-muted-foreground">
-          Drag and drop files or click to select files for upload to your S3 bucket
+          Drag and drop files or click to select files for upload to your bucket
         </p>
       </div>
 

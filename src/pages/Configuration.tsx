@@ -76,12 +76,12 @@ export default function Configuration() {
       setIsConnected(true);
       toast({
         title: "Configuration Saved",
-        description: "Configuration saved. The backend API will handle S3 authentication.",
+        description: "Configuration saved. The backend API will handle bucket authentication.",
       });
     } catch (error) {
       toast({
         title: "Configuration Error",
-        description: error instanceof Error ? error.message : "Failed to initialize S3 service",
+        description: error instanceof Error ? error.message : "Failed to initialize bucket service",
         variant: "destructive",
       });
     }
@@ -108,13 +108,13 @@ export default function Configuration() {
       setIsConnected(true);
       toast({
         title: "Connection Successful",
-        description: "Successfully connected to your S3 bucket!",
+        description: "Successfully connected to your bucket!",
       });
     } catch (error) {
       setIsConnected(false);
       toast({
         title: "Connection Failed",
-        description: error instanceof Error ? error.message : "Failed to connect to S3 bucket",
+        description: error instanceof Error ? error.message : "Failed to connect to bucket",
         variant: "destructive",
       });
     } finally {
@@ -127,7 +127,7 @@ export default function Configuration() {
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-2 gradient-text">S3 Configuration</h1>
         <p className="text-muted-foreground">
-          Configure your AWS S3 bucket settings for secure file management
+          Configure your storage bucket settings for secure file management
         </p>
       </div>
 
@@ -141,7 +141,7 @@ export default function Configuration() {
                 <div>
                   <CardTitle>AWS S3 Settings</CardTitle>
                   <CardDescription>
-                    Enter your AWS S3 bucket details and authentication method
+                    Enter your storage bucket details and authentication method
                   </CardDescription>
                 </div>
               </div>
@@ -248,7 +248,7 @@ export default function Configuration() {
                     <span className="text-sm font-medium">IAM Role Authentication</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    The application will use the IAM role attached to your EC2 instance for S3 authentication. 
+                    The application will use the IAM role attached to your VM instance for storage bucket authentication. 
                     No access keys required.
                   </p>
                 </div>

@@ -1,12 +1,12 @@
 
 # S3 Bucket Manager
 
-A beautiful, Spotify-inspired web application for managing AWS S3 storage buckets. Built with React, TypeScript, and Tailwind CSS, designed to run as a microservice using Docker.
+A beautiful, web application for managing storage buckets. Built with React, TypeScript, and Tailwind CSS, designed to run as a microservice using Docker.
 
 ## Features
 
-- 🎵 **Spotify-inspired Design** - Dark theme with green accents and smooth animations
-- ☁️ **S3 Integration** - Upload, download, and manage files in your AWS S3 buckets
+- 🎵 **Design** - Dark theme with green accents and smooth animations
+- ☁️ **S3 Integration** - Upload, download, and manage files in your Storage buckets
 - 🐳 **Docker Ready** - Containerized application ready for deployment
 - 🔒 **Secure** - Environment-based configuration with IAM role support
 - 📱 **Responsive** - Beautiful interface that works on all devices
@@ -17,7 +17,7 @@ A beautiful, Spotify-inspired web application for managing AWS S3 storage bucket
 ### Prerequisites
 
 - Docker and Docker Compose
-- AWS S3 bucket with appropriate permissions
+- Sorage bucket with appropriate permissions
 - AWS credentials (Access Key ID and Secret Access Key) OR IAM roles configured
 
 ### Environment Setup

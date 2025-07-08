@@ -12,7 +12,7 @@ export function Header() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-background font-bold text-sm">S3</span>
           </div>
-          <h1 className="text-xl font-bold gradient-text">S3 Bucket Manager</h1>
+          <h1 className="text-xl font-bold gradient-text">Storage Bucket Manager</h1>
         </div>
       </div>
       

@@ -19,10 +19,10 @@ export default function Dashboard() {
       {/* Hero Section */}
       <div className="text-center py-12">
         <h1 className="text-5xl font-bold mb-4 gradient-text">
-          Welcome to S3 Bucket Manager
+          Welcome to Storage Bucket Manager
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Manage your AWS S3 storage with a beautiful, Spotify-inspired interface. 
+          Manage your storage bucket. 
           Upload, download, and organize your files with ease.
         </p>
       </div>
@@ -52,9 +52,9 @@ export default function Dashboard() {
             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
               <Settings className="w-6 h-6 text-primary" />
             </div>
-            <CardTitle>Configure S3</CardTitle>
+            <CardTitle>Configure Storage bucket</CardTitle>
             <CardDescription>
-              Set up your AWS S3 bucket credentials and region settings
+              Set up your Storage bucket credentials and region settings
             </CardDescription>
           </CardHeader>
         </Card>
@@ -67,7 +67,7 @@ export default function Dashboard() {
             </div>
             <CardTitle>Upload Files</CardTitle>
             <CardDescription>
-              Drag and drop or select files to upload to your S3 bucket
+              Drag and drop or select files to upload to your Storage bucket
             </CardDescription>
           </CardHeader>
         </Card>
@@ -80,7 +80,7 @@ export default function Dashboard() {
             </div>
             <CardTitle>Browse Files</CardTitle>
             <CardDescription>
-              View, download, and manage files in your S3 bucket
+              View, download, and manage files in your Storage bucket
             </CardDescription>
           </CardHeader>
         </Card>
