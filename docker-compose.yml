@@ -1,40 +1,42 @@
 services:
-  s3-bucket-manager-frontend:
+  frontend-bucket-manager:
     build:
       context: .
       args:
         - VITE_API_URL=${VITE_API_URL:-http://localhost:3001}
-    container_name: s3-bucket-manager-frontend
+    container_name: frontend-bucket-manager
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3001}
     ports:
       - "8080:80"
     restart: unless-stopped
     networks:
-      - s3-manager-network
+      - shared
     depends_on:
-      - s3-bucket-manager-api
+      - api-bucket-manager
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.s3-manager.rule=Host(`s3-manager.localhost`)"
       - "traefik.http.services.s3-manager.loadbalancer.server.port=80"
 
-  s3-bucket-manager-api:
+  api-bucket-manager:
     build: ./backend
-    container_name: s3-bucket-manager-api
+    container_name: api-bucket-manager
     ports:
       - "3001:3001"
     environment:
       # AWS credentials via IAM role (recommended for EC2)
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-eu-central-1}
-      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - REGION=${REGION:-eu-central-1}
+      - BUCKET_NAME=${BUCKET_NAME}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}
       # Only use these if IAM role is not available
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
     restart: unless-stopped
     networks:
-      - s3-manager-network
+      - shared
 
 networks:
-  s3-manager-network:
+ shared:
     driver: bridge
 

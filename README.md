@@ -32,7 +32,7 @@ cp .env.example .env
 AWS_ACCESS_KEY_ID=your_access_key_id_here
 AWS_SECRET_ACCESS_KEY=your_secret_access_key_here
 AWS_DEFAULT_REGION=us-east-1
-S3_BUCKET_NAME=your-bucket-name
+BUCKET_NAME=your-bucket-name
 ```
 
 ### Running with Docker Compose
@@ -134,7 +134,7 @@ docker run -p 8080:80 --env-file .env s3-bucket-manager
 | `AWS_ACCESS_KEY_ID` | AWS Access Key ID | Yes (unless using IAM roles) |
 | `AWS_SECRET_ACCESS_KEY` | AWS Secret Access Key | Yes (unless using IAM roles) |
 | `AWS_DEFAULT_REGION` | AWS Region | Yes |
-| `S3_BUCKET_NAME` | S3 Bucket Name | Yes |
+| `BUCKET_NAME` | Bucket Name | Yes |
 | `NODE_ENV` | Environment (production/development) | No |
 
 ### Docker Compose Override

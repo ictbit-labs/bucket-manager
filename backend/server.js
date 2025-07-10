@@ -35,13 +35,13 @@ const upload = multer({
 
 // Initialize S3 client (uses IAM role by default)
 const s3Client = new S3Client({
-  region: process.env.AWS_DEFAULT_REGION || 'eu-central-1'
+  region: process.env.REGION || 'eu-central-1'
 });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME;
+const BUCKET_NAME = process.env.BUCKET_NAME;
 
 if (!BUCKET_NAME) {
-  console.error('S3_BUCKET_NAME environment variable is required');
+  console.error('BUCKET_NAME environment variable is required');
   process.exit(1);
 }
 

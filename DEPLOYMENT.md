@@ -26,8 +26,8 @@
 
 2. Edit `.env` file:
    ```bash
-   AWS_DEFAULT_REGION=eu-central-1
-   S3_BUCKET_NAME=your-actual-bucket-name
+   REGION=eu-central-1
+   BUCKET_NAME=your-actual-bucket-name
    VITE_API_URL=http://your-ec2-public-ip:3001
    ```
 
